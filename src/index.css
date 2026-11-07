@@ -1,0 +1,435 @@
+@import "tailwindcss";
+
+@theme {
+  /* Brand Colour Palette — Enzolt Energy Edition */
+  --color-ink: #080B09;
+  --color-charcoal: #151A17;
+  --color-enzolt: #A5D92E;
+  --color-enzolt-glow: #B8F34A;
+  --color-gold: #D5A84B;
+  --color-champagne: #EAD39C;
+  --color-mist: #A0A5A1;
+  --color-white: #FFFFFF;
+
+  /* Semantic aliases */
+  --color-bg-primary: #080B09;
+  --color-bg-secondary: #151A17;
+  --color-brand: #A5D92E;
+  --color-brand-glow: #B8F34A;
+  --color-festive: #D5A84B;
+  --color-text-main: #FFFFFF;
+  --color-text-muted: #A0A5A1;
+
+  /* Typography System — Enzolt.com Style (Montserrat + Roboto) */
+  --font-primary: "Montserrat", sans-serif;
+  --font-secondary: "Roboto", sans-serif;
+
+  --font-display: "Montserrat", sans-serif;
+  --font-body: "Roboto", sans-serif;
+  --font-product: "Montserrat", sans-serif;
+}
+
+@layer base {
+  :root {
+    --font-primary: "Montserrat", sans-serif;
+    --font-secondary: "Roboto", sans-serif;
+  }
+
+  html {
+    background: #080B09;
+    color: #FFFFFF;
+    scroll-behavior: smooth;
+    -webkit-text-size-adjust: 100%;
+  }
+
+  body {
+    margin: 0;
+    font-family: var(--font-secondary);
+    font-weight: 400;
+    background: #080B09;
+    color: #FFFFFF;
+    overflow-x: hidden;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+  }
+
+  h1, h2, h3, h4, h5, h6,
+  button, nav, .heading {
+    font-family: var(--font-primary);
+  }
+
+  h1 {
+    font-weight: 800;
+    letter-spacing: -0.015em;
+  }
+
+  h2, h3 {
+    font-weight: 700;
+    letter-spacing: -0.01em;
+  }
+
+  h4, h5, h6 {
+    font-weight: 600;
+  }
+
+  button {
+    font-family: var(--font-primary);
+    font-weight: 800;
+  }
+
+  p {
+    font-family: var(--font-secondary);
+    font-weight: 400;
+  }
+
+  #root {
+    overflow-x: clip;
+    background: #080B09;
+  }
+
+  ::selection {
+    background: rgba(165, 217, 46, 0.35);
+    color: #FFFFFF;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    html {
+      scroll-behavior: auto;
+    }
+    *,
+    *::before,
+    *::after {
+      animation-duration: 0.01ms !important;
+      animation-iteration-count: 1 !important;
+      transition-duration: 0.01ms !important;
+    }
+  }
+}
+
+@layer utilities {
+  .font-display {
+    font-family: var(--font-primary);
+  }
+  .font-body {
+    font-family: var(--font-secondary);
+  }
+  .font-product {
+    font-family: var(--font-primary);
+  }
+
+  /* Text Gradients */
+  .text-gold-gradient {
+    background: linear-gradient(110deg, #FFFFFF 0%, #D5A84B 45%, #EAD39C 75%, #FFFFFF 100%);
+    -webkit-background-clip: text;
+    background-clip: text;
+    color: transparent;
+  }
+
+  .text-green-gradient {
+    background: linear-gradient(110deg, #FFFFFF 0%, #A5D92E 50%, #B8F34A 100%);
+    -webkit-background-clip: text;
+    background-clip: text;
+    color: transparent;
+  }
+
+  .text-festive-tech {
+    background: linear-gradient(110deg, #FFFFFF 0%, #A5D92E 40%, #D5A84B 80%, #FFFFFF 100%);
+    -webkit-background-clip: text;
+    background-clip: text;
+    color: transparent;
+  }
+
+  .eyebrow {
+    font-family: var(--font-primary);
+    font-size: 0.72rem;
+    letter-spacing: 0.32em;
+    text-transform: uppercase;
+    color: #A5D92E;
+    font-weight: 700;
+  }
+
+  .glass {
+    background: rgba(21, 26, 23, 0.72);
+    backdrop-filter: blur(20px) saturate(140%);
+    -webkit-backdrop-filter: blur(20px) saturate(140%);
+    border: 1px solid rgba(165, 217, 46, 0.15);
+  }
+
+  .hairline {
+    height: 1px;
+    background: linear-gradient(90deg, transparent, rgba(165, 217, 46, 0.5), rgba(213, 168, 75, 0.4), transparent);
+  }
+
+  .hairline-green {
+    height: 1px;
+    background: linear-gradient(90deg, transparent, rgba(165, 217, 46, 0.6), transparent);
+  }
+
+  /* Primary Button — Enzolt Montserrat 800 */
+  .gold-btn,
+  .enzolt-btn {
+    position: relative;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.65rem;
+    padding: 0.88rem 1.95rem;
+    border-radius: 999px;
+    font-family: var(--font-primary);
+    font-size: 0.78rem;
+    font-weight: 800;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: #080B09;
+    background: #A5D92E;
+    box-shadow: 0 0 24px -2px rgba(165, 217, 46, 0.42), 0 10px 25px -5px rgba(0, 0, 0, 0.6);
+    transition: transform 0.3s cubic-bezier(0.16, 1, 0.3, 1), box-shadow 0.3s cubic-bezier(0.16, 1, 0.3, 1), background-color 0.3s ease;
+    overflow: hidden;
+  }
+  .gold-btn:hover,
+  .enzolt-btn:hover {
+    background: #B8F34A;
+    transform: translateY(-2px);
+    box-shadow: 0 0 35px 2px rgba(184, 243, 74, 0.55), 0 14px 30px -5px rgba(0, 0, 0, 0.7);
+  }
+  .gold-btn::after,
+  .enzolt-btn::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(115deg, transparent 20%, rgba(255, 255, 255, 0.6) 50%, transparent 80%);
+    transform: translateX(-130%);
+    transition: transform 0.75s ease;
+  }
+  .gold-btn:hover::after,
+  .enzolt-btn:hover::after {
+    transform: translateX(130%);
+  }
+
+  /* Secondary Button — Enzolt Montserrat 700 Ghost */
+  .ghost-btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.6rem;
+    padding: 0.85rem 1.85rem;
+    border-radius: 999px;
+    font-family: var(--font-primary);
+    font-size: 0.76rem;
+    font-weight: 700;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: #FFFFFF;
+    border: 1px solid rgba(165, 217, 46, 0.35);
+    background: rgba(165, 217, 46, 0.04);
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+    transition: border-color 0.3s ease, background 0.3s ease, transform 0.3s ease, color 0.3s ease, box-shadow 0.3s ease;
+  }
+  .ghost-btn:hover {
+    border-color: #A5D92E;
+    background: rgba(165, 217, 46, 0.12);
+    color: #B8F34A;
+    transform: translateY(-2px);
+    box-shadow: 0 0 24px -4px rgba(165, 217, 46, 0.35);
+  }
+
+  /* Tech Cards */
+  .enzolt-card {
+    background: #151A17;
+    border: 1px solid rgba(165, 217, 46, 0.14);
+    border-radius: 1.15rem;
+    box-shadow: 0 20px 40px -20px rgba(0, 0, 0, 0.7);
+    transition: border-color 0.35s ease, box-shadow 0.35s ease, transform 0.35s ease;
+  }
+  .enzolt-card:hover {
+    border-color: rgba(165, 217, 46, 0.36);
+    box-shadow: 0 24px 50px -15px rgba(165, 217, 46, 0.18);
+    transform: translateY(-2px);
+  }
+
+  .blend-screen {
+    mix-blend-mode: screen;
+  }
+
+  .no-scrollbar::-webkit-scrollbar {
+    display: none;
+  }
+  .no-scrollbar {
+    -ms-overflow-style: none;
+    scrollbar-width: none;
+  }
+}
+
+/* ---------- Realistic Diya Flame Animations ---------- */
+@keyframes flame-sway {
+  0% {
+    transform: translateX(-50%) rotate(-1.5deg) scaleY(1);
+  }
+  25% {
+    transform: translateX(-50%) rotate(1.8deg) scaleY(1.05);
+  }
+  50% {
+    transform: translateX(-50%) rotate(-1.2deg) scaleY(0.97);
+  }
+  75% {
+    transform: translateX(-50%) rotate(2.2deg) scaleY(1.04);
+  }
+  100% {
+    transform: translateX(-50%) rotate(-1.5deg) scaleY(1);
+  }
+}
+
+@keyframes flame-flicker {
+  0%, 100% {
+    opacity: 0.96;
+    filter: blur(0.4px) brightness(1);
+  }
+  30% {
+    opacity: 1;
+    filter: blur(0.55px) brightness(1.12);
+  }
+  65% {
+    opacity: 0.91;
+    filter: blur(0.3px) brightness(0.96);
+  }
+}
+
+@keyframes glow-breathe {
+  0%, 100% {
+    opacity: 0.75;
+    transform: translate(-50%, -50%) scale(1);
+  }
+  50% {
+    opacity: 1;
+    transform: translate(-50%, -50%) scale(1.08);
+  }
+}
+
+@keyframes green-glow-pulse {
+  0%, 100% {
+    opacity: 0.4;
+    transform: scale(0.97);
+  }
+  50% {
+    opacity: 0.75;
+    transform: scale(1.04);
+  }
+}
+
+@keyframes slow-spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+@keyframes ray-pulse {
+  0%, 100% {
+    opacity: 0.2;
+  }
+  50% {
+    opacity: 0.5;
+  }
+}
+
+@keyframes drift-up {
+  0% {
+    transform: translateY(0) scale(1);
+    opacity: 0;
+  }
+  15% {
+    opacity: 0.95;
+  }
+  100% {
+    transform: translateY(-130px) scale(0.5);
+    opacity: 0;
+  }
+}
+
+@keyframes scroll-hint {
+  0% {
+    transform: translateY(-6px);
+    opacity: 0;
+  }
+  40% {
+    opacity: 1;
+  }
+  100% {
+    transform: translateY(8px);
+    opacity: 0;
+  }
+}
+
+@keyframes ring-pulse {
+  0% {
+    transform: scale(0.9);
+    opacity: 0.7;
+  }
+  100% {
+    transform: scale(1.85);
+    opacity: 0;
+  }
+}
+
+@keyframes charge-fill {
+  0% {
+    stroke-dashoffset: 251;
+  }
+  100% {
+    stroke-dashoffset: 55;
+  }
+}
+
+.flame {
+  position: absolute;
+  left: 50%;
+  bottom: 100%;
+  transform-origin: 50% 100%;
+  animation: flame-sway 3.4s ease-in-out infinite, flame-flicker 1.8s ease-in-out infinite;
+  will-change: transform, opacity;
+}
+
+.flame-glow {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  border-radius: 50%;
+  pointer-events: none;
+  animation: glow-breathe 4s ease-in-out infinite;
+  will-change: transform, opacity;
+}
+
+.green-aura {
+  animation: green-glow-pulse 5s ease-in-out infinite;
+}
+
+.rays {
+  animation: slow-spin 90s linear infinite;
+  will-change: transform;
+}
+
+.ray-pulse {
+  animation: ray-pulse 5s ease-in-out infinite;
+}
+
+.scroll-hint {
+  animation: scroll-hint 2.2s ease-in-out infinite;
+}
+
+.ring-pulse {
+  animation: ring-pulse 2.6s ease-out infinite;
+}
+
+.charge-arc {
+  stroke-dasharray: 251;
+  stroke-dashoffset: 55;
+  animation: charge-fill 2.4s cubic-bezier(0.4, 0, 0.2, 1) 0.4s both;
+}
+
+.ember {
+  position: absolute;
+  border-radius: 999px;
+  background: radial-gradient(circle, #FFFFFF 0%, #D5A84B 40%, rgba(213, 168, 75, 0) 75%);
+  animation: drift-up 5.5s ease-out infinite;
+  will-change: transform, opacity;
+}
