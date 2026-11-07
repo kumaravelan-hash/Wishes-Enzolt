@@ -23,6 +23,8 @@ interface Particle {
 interface Spark {
   x: number;
   y: number;
+  prevX: number;
+  prevY: number;
   vx: number;
   vy: number;
   alpha: number;
@@ -122,6 +124,7 @@ export default function RocketLauncher() {
   const buttonRef = useRef<HTMLButtonElement>(null);
   const rocketDockRef = useRef<HTMLSpanElement>(null);
   const flyingRocketRef = useRef<HTMLDivElement>(null);
+  const isRocketFlyingRef = useRef(false);
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const audioRef = useRef<HTMLAudioElement>(null);
 
@@ -141,13 +144,13 @@ export default function RocketLauncher() {
     cx: number,
     cy: number,
     palette: string[],
-    particleCount = 140,
+    particleCount = 180,
     shockColor = "#A5D92E",
   ) => {
     // 1. Primary Cracker Particles
     for (let i = 0; i < particleCount; i++) {
       const angle = Math.random() * Math.PI * 2;
-      const speed = 2.4 + Math.random() * 8.8;
+      const speed = 2.8 + Math.random() * 10.5;
       const color = palette[Math.floor(Math.random() * palette.length)];
 
       particlesRef.current.push({
@@ -158,29 +161,31 @@ export default function RocketLauncher() {
         vx: Math.cos(angle) * speed,
         vy: Math.sin(angle) * speed,
         alpha: 1,
-        // Decay tuned for ~2.0 - 2.4s of sparkling fireworks
-        decay: 0.008 + Math.random() * 0.007,
+        // Decay tuned for ~2.2 - 2.8s of sparkling fireworks
+        decay: 0.007 + Math.random() * 0.006,
         color,
-        radius: 1.8 + Math.random() * 2.2,
-        gravity: 0.085,
-        friction: 0.97,
+        radius: 2.2 + Math.random() * 2.6,
+        gravity: 0.08,
+        friction: 0.972,
         twinkle: Math.random() * 10,
       });
     }
 
-    // 2. Glittering Sparks
-    for (let i = 0; i < 45; i++) {
+    // 2. Glittering Sparks & Chrysanthemum stars
+    for (let i = 0; i < 75; i++) {
       const angle = Math.random() * Math.PI * 2;
-      const speed = 1.0 + Math.random() * 4.8;
+      const speed = 1.4 + Math.random() * 6.2;
       sparksRef.current.push({
         x: cx,
         y: cy,
+        prevX: cx,
+        prevY: cy,
         vx: Math.cos(angle) * speed,
         vy: Math.sin(angle) * speed,
         alpha: 1,
-        decay: 0.01 + Math.random() * 0.009,
-        color: Math.random() > 0.4 ? "#FFFFFF" : "#F5D77F",
-        size: 1.2 + Math.random() * 1.5,
+        decay: 0.009 + Math.random() * 0.008,
+        color: Math.random() > 0.35 ? "#FFFFFF" : "#FFD700",
+        size: 2.2 + Math.random() * 2.4,
         seed: Math.random() * 100,
       });
     }
@@ -190,8 +195,8 @@ export default function RocketLauncher() {
       x: cx,
       y: cy,
       radius: 4,
-      maxRadius: 95,
-      alpha: 0.85,
+      maxRadius: 110,
+      alpha: 0.9,
       color: shockColor,
     });
   };
@@ -229,6 +234,7 @@ export default function RocketLauncher() {
     // Rocket ascends 100% DEAD STRAIGHT up the center
     setTargetPos({ x: centerX, y: apexY });
     setIsLaunching(true);
+    isRocketFlyingRef.current = true;
     setIsRocketFlying(true);
     setShowCanvas(true);
 
@@ -260,6 +266,7 @@ export default function RocketLauncher() {
     // Rocket arrives at apex and BURSTS ON BOTH SIDES OF THE LAMP
     // =========================================================================
     sound1TimerRef.current = window.setTimeout(() => {
+      isRocketFlyingRef.current = false;
       setIsRocketFlying(false);
 
       // Query current live position of Diya lamp now that scroll is at top
@@ -277,8 +284,8 @@ export default function RocketLauncher() {
       }
 
       // Cracker 1: Detonates on BOTH SIDES of the lamp (Enzolt Lime & Diamond White)
-      spawnCrackerBurst(liveLeftX, liveBurstY, CRACKER_1_COLORS, 140, "#A5D92E");
-      spawnCrackerBurst(liveRightX, liveBurstY, CRACKER_1_COLORS, 140, "#B8F34A");
+      spawnCrackerBurst(liveLeftX, liveBurstY, CRACKER_1_COLORS, 180, "#A5D92E");
+      spawnCrackerBurst(liveRightX, liveBurstY, CRACKER_1_COLORS, 180, "#B8F34A");
     }, 2600);
 
     // =========================================================================
@@ -300,8 +307,8 @@ export default function RocketLauncher() {
       }
 
       // Cracker 2: Massive festive burst on BOTH SIDES of the lamp
-      spawnCrackerBurst(liveLeftX, liveBurstY - 8, CRACKER_2_COLORS, 150, "#FF8008");
-      spawnCrackerBurst(liveRightX, liveBurstY - 8, CRACKER_2_COLORS, 150, "#FFC837");
+      spawnCrackerBurst(liveLeftX, liveBurstY - 8, CRACKER_2_COLORS, 190, "#FF8008");
+      spawnCrackerBurst(liveRightX, liveBurstY - 8, CRACKER_2_COLORS, 190, "#FFC837");
     }, 3150);
 
     // =========================================================================
@@ -314,6 +321,7 @@ export default function RocketLauncher() {
         audioRef.current.currentTime = 0;
       }
 
+      isRocketFlyingRef.current = false;
       setShowCanvas(false);
       setIsLaunching(false);
       setIsRocketFlying(false);
@@ -376,31 +384,48 @@ export default function RocketLauncher() {
       const sparks = sparksRef.current;
       const shockwaves = shockwavesRef.current;
 
-      // While rocket is ascending, spawn sparkling golden exhaust trail from its nozzle
-      if (isRocketFlying && flyingRocketRef.current) {
+      // While rocket is ascending, shower vibrant sparkling stardust trail from its nozzle
+      if (isRocketFlyingRef.current && flyingRocketRef.current) {
         const r = flyingRocketRef.current.getBoundingClientRect();
-        if (r.top > 0 && r.top < window.innerHeight) {
-          const exX = r.left + r.width / 2 + (Math.random() - 0.5) * 6;
-          const exY = r.bottom - 4;
-          for (let k = 0; k < 3; k++) {
+        if (r.top > -100 && r.top < window.innerHeight + 100) {
+          const nozzleX = r.left + r.width / 2;
+          const nozzleY = r.top + 28; // right at the base of the rocket cone/nozzle
+
+          // Shower 14 high-visibility brilliant sparks per frame
+          for (let k = 0; k < 14; k++) {
+            const spreadAngle = (Math.PI / 2) + (Math.random() - 0.5) * 1.35; // downward cone ±38°
+            const speed = 3.2 + Math.random() * 8.5;
+            const sparkColors = [
+              "#FFFFFF",
+              "#FFFFFF",
+              "#B8F34A",
+              "#A5D92E",
+              "#FFD700",
+              "#FFA200",
+              "#FFF7C2",
+            ];
+            const color = sparkColors[Math.floor(Math.random() * sparkColors.length)];
+
             sparks.push({
-              x: exX,
-              y: exY,
-              vx: (Math.random() - 0.5) * 2.2,
-              vy: 1.8 + Math.random() * 3.8,
-              alpha: 0.95,
-              decay: 0.035 + Math.random() * 0.02,
-              color: Math.random() > 0.4 ? "#B8F34A" : "#FFC837",
-              size: 1.4 + Math.random() * 1.5,
-              seed: Math.random() * 50,
+              x: nozzleX + (Math.random() - 0.5) * 8,
+              y: nozzleY + Math.random() * 5,
+              prevX: nozzleX,
+              prevY: nozzleY,
+              vx: Math.cos(spreadAngle) * speed,
+              vy: Math.sin(spreadAngle) * speed + 2.0, // gravity pulls sparks downwards
+              alpha: 1.0,
+              decay: 0.013 + Math.random() * 0.011, // lasts ~60-80 frames (~1.2 seconds)
+              color,
+              size: 2.2 + Math.random() * 3.0, // 2.2px to 5.2px - super vibrant & crisp
+              seed: Math.random() * 100,
             });
           }
         }
       }
 
-      // Smooth motion streak fade (NO expensive blur filters)
+      // Smooth motion streak fade: 0.11 alpha keeps a long luminous trail behind the rocket
       ctx.globalCompositeOperation = "destination-out";
-      ctx.fillStyle = "rgba(0, 0, 0, 0.18)";
+      ctx.fillStyle = "rgba(0, 0, 0, 0.11)";
       ctx.fillRect(0, 0, window.innerWidth, window.innerHeight);
 
       // Additive blending: creates intense sparkling light where sparks overlap
@@ -467,13 +492,15 @@ export default function RocketLauncher() {
         ctx.fill();
       }
 
-      // 3. Draw Glitter & Twinkling Sparks
+      // 3. Draw Glitter & Twinkling Stardust Sparks
       for (let i = sparks.length - 1; i >= 0; i--) {
         const s = sparks[i];
+        s.prevX = s.x;
+        s.prevY = s.y;
         s.x += s.vx;
         s.y += s.vy;
-        s.vy += 0.04;
-        s.vx *= 0.98;
+        s.vy += 0.12; // gravity pulls sparks downwards
+        s.vx *= 0.975;
         s.alpha -= s.decay;
 
         if (s.alpha <= 0) {
@@ -482,11 +509,28 @@ export default function RocketLauncher() {
         }
 
         // Festive twinkling shimmer
-        const twinkleAlpha = s.alpha * (Math.sin(frameCount * 0.35 + s.seed) > 0 ? 1 : 0.25);
+        const twinkleAlpha = s.alpha * (Math.sin(frameCount * 0.45 + s.seed) > -0.25 ? 1 : 0.35);
 
+        // A. Sparkling motion streak line
         ctx.beginPath();
-        ctx.arc(s.x, s.y, s.size, 0, Math.PI * 2);
+        ctx.moveTo(s.prevX, s.prevY);
+        ctx.lineTo(s.x, s.y);
+        ctx.strokeStyle = s.color;
+        ctx.lineWidth = s.size * 0.85;
+        ctx.globalAlpha = twinkleAlpha * 0.85;
+        ctx.stroke();
+
+        // B. Soft glowing aura around each spark
+        ctx.beginPath();
+        ctx.arc(s.x, s.y, s.size * 2.2, 0, Math.PI * 2);
         ctx.fillStyle = s.color;
+        ctx.globalAlpha = twinkleAlpha * 0.35;
+        ctx.fill();
+
+        // C. Ultra-bright diamond center
+        ctx.beginPath();
+        ctx.arc(s.x, s.y, s.size * 0.9, 0, Math.PI * 2);
+        ctx.fillStyle = "#FFFFFF";
         ctx.globalAlpha = twinkleAlpha;
         ctx.fill();
       }
@@ -595,7 +639,7 @@ export default function RocketLauncher() {
                   <RocketIcon size={32} />
                 </div>
 
-                {/* Rocket Fire Jet & Exhaust Flames */}
+                {/* Rocket Fire Jet & Sparkling Exhaust Flames */}
                 <div className="relative -mt-1 flex flex-col items-center">
                   {/* Core White Hot Flame */}
                   <div
@@ -604,7 +648,7 @@ export default function RocketLauncher() {
                       background:
                         "linear-gradient(180deg, #FFFFFF 0%, #B8F34A 35%, #A5D92E 70%, rgba(213,168,75,0.2) 100%)",
                       boxShadow:
-                        "0 0 20px 5px rgba(184,243,74,0.95), 0 0 45px 12px rgba(165,217,46,0.7)",
+                        "0 0 22px 6px rgba(184,243,74,0.95), 0 0 50px 14px rgba(165,217,46,0.75)",
                       filter: "blur(0.5px)",
                     }}
                   />
@@ -619,8 +663,21 @@ export default function RocketLauncher() {
                     }}
                   />
 
+                  {/* Active Showering Sparkler Cluster directly under rocket */}
+                  <div className="pointer-events-none absolute -bottom-10 flex items-center justify-center">
+                    <div className="relative h-24 w-20">
+                      <span className="absolute top-1 left-3 h-2.5 w-2.5 rounded-full bg-white shadow-[0_0_12px_4px_#FFFFFF] animate-ping" />
+                      <span className="absolute top-4 right-2 h-3.5 w-3.5 rounded-full bg-[#B8F34A] shadow-[0_0_16px_5px_#B8F34A] animate-ping" style={{ animationDelay: "110ms" }} />
+                      <span className="absolute top-7 left-1 h-2.5 w-2.5 rounded-full bg-[#FFD700] shadow-[0_0_14px_4px_#FFD700] animate-ping" style={{ animationDelay: "220ms" }} />
+                      <span className="absolute top-11 right-3 h-3 w-3 rounded-full bg-white shadow-[0_0_12px_4px_#FFFFFF] animate-ping" style={{ animationDelay: "75ms" }} />
+                      <span className="absolute top-14 left-2 h-3.5 w-3.5 rounded-full bg-[#A5D92E] shadow-[0_0_16px_5px_#A5D92E] animate-ping" style={{ animationDelay: "160ms" }} />
+                      <span className="absolute top-18 right-2 h-2.5 w-2.5 rounded-full bg-[#FFA200] shadow-[0_0_14px_4px_#FFA200] animate-ping" style={{ animationDelay: "280ms" }} />
+                      <span className="absolute top-21 left-4 h-2 w-2 rounded-full bg-[#FFF7C2] shadow-[0_0_10px_3px_#FFF7C2] animate-ping" style={{ animationDelay: "340ms" }} />
+                    </div>
+                  </div>
+
                   {/* Golden Spark Trail */}
-                  <div className="pointer-events-none mt-1 flex flex-col items-center gap-1.5 opacity-80">
+                  <div className="pointer-events-none mt-2 flex flex-col items-center gap-1.5 opacity-90">
                     <span className="h-3 w-3 rounded-full bg-[#B8F34A] blur-[1px] animate-ping" />
                     <span className="h-4 w-4 rounded-full bg-[#D5A84B] blur-[2px]" />
                     <span className="h-5 w-5 rounded-full bg-[#FF8008] blur-[3px]" />
