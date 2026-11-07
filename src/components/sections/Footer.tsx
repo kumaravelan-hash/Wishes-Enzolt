@@ -1,7 +1,6 @@
 import { Globe, Mail, MapPin, Phone, Sparkles } from "lucide-react";
 import Logo from "@/components/Logo";
 import Particles from "@/components/Particles";
-import RocketLauncher from "@/components/RocketLauncher";
 
 function Instagram({ size = 16 }: { size?: number }) {
   return (
@@ -145,10 +144,6 @@ export default function Footer() {
           </div>
         </div>
 
-        {/* Centered Interactive Diwali Rocket Fireworks Launcher */}
-        <div className="mt-14 flex flex-col items-center justify-center text-center">
-          <RocketLauncher />
-        </div>
 
         {/* Closing banner */}
         <div className="mt-20 border-t border-white/[0.08] pt-12 text-center">
