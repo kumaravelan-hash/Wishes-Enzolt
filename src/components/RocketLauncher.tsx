@@ -1,6 +1,5 @@
 import { useEffect, useRef, useState } from "react";
 import { createPortal } from "react-dom";
-import { motion, AnimatePresence } from "framer-motion";
 import { Sparkles } from "lucide-react";
 import crackerSound from "@/assets/whatsapp-audio-2026-11-07-at-103011-1-mpeg_joUy7ran.mp3";
 import { gsap } from "@/lib/gsap";
@@ -117,12 +116,12 @@ function RocketIcon({ className = "", size = 22 }: { className?: string; size?: 
 export default function RocketLauncher() {
   const [isLaunching, setIsLaunching] = useState(false);
   const [isRocketFlying, setIsRocketFlying] = useState(false);
-  const [launchOrigin, setLaunchOrigin] = useState<{ x: number; y: number } | null>(null);
   const [targetPos, setTargetPos] = useState<{ x: number; y: number }>({ x: 0, y: 120 });
   const [showCanvas, setShowCanvas] = useState(false);
 
   const buttonRef = useRef<HTMLButtonElement>(null);
   const rocketDockRef = useRef<HTMLSpanElement>(null);
+  const flyingRocketRef = useRef<HTMLDivElement>(null);
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const audioRef = useRef<HTMLAudioElement>(null);
 
@@ -201,41 +200,33 @@ export default function RocketLauncher() {
   const handleLaunch = () => {
     if (isLaunching) return;
 
-    if (!rocketDockRef.current) return;
     const centerX = window.innerWidth / 2;
-    const startY = window.innerHeight - 80;
+    const isDesktop = window.innerWidth >= 768;
+    const sideSpacing = isDesktop
+      ? Math.min(window.innerWidth * 0.25, 270)
+      : Math.min(window.innerWidth * 0.32, 130);
 
-    // 1. Detect the exact position of the Diya Lamp on the Home page
+    // 1. Accurately measure the Diya Lamp on the Home page relative to #intro
     const diyaEl = document.querySelector("[data-i='diya']");
+    const introEl = document.getElementById("intro");
     let lampX = centerX;
     let lampY = window.innerHeight * 0.38;
 
-    if (diyaEl) {
+    if (diyaEl && introEl) {
+      const diyaRect = diyaEl.getBoundingClientRect();
+      const introRect = introEl.getBoundingClientRect();
+      lampX = diyaRect.left - introRect.left + diyaRect.width / 2;
+      lampY = diyaRect.top - introRect.top + diyaRect.height * 0.45;
+    } else if (diyaEl) {
       const diyaRect = diyaEl.getBoundingClientRect();
       lampX = diyaRect.left + diyaRect.width / 2;
-      const docTop = diyaRect.top + window.scrollY;
-      lampY = docTop + diyaRect.height / 2;
+      lampY = diyaRect.top + window.scrollY + diyaRect.height * 0.45;
     }
 
-    // 2. Calculate the two sides flanking the lamp
-    const isDesktop = window.innerWidth >= 768;
-    const sideSpacing = isDesktop
-      ? Math.min(window.innerWidth * 0.28, Math.max(260, window.innerWidth * 0.23))
-      : Math.min(130, window.innerWidth * 0.32);
+    // Rocket apex right at the flame of the Diya
+    const apexY = Math.max(60, lampY - 15);
 
-    // Left side of the lamp
-    const leftX = Math.max(50, lampX - sideSpacing);
-    const leftY = Math.max(60, lampY - 20);
-
-    // Right side of the lamp
-    const rightX = Math.min(window.innerWidth - 50, lampX + sideSpacing);
-    const rightY = Math.max(60, lampY - 20);
-
-    // Rocket apex altitude right at lamp flame level
-    const apexY = Math.min(leftY, rightY) - 10;
-
-    // The rocket launches and climbs 100% DEAD STRAIGHT up the center!
-    setLaunchOrigin({ x: centerX, y: startY });
+    // Rocket ascends 100% DEAD STRAIGHT up the center
     setTargetPos({ x: centerX, y: apexY });
     setIsLaunching(true);
     setIsRocketFlying(true);
@@ -246,17 +237,17 @@ export default function RocketLauncher() {
     sparksRef.current = [];
     shockwavesRef.current = [];
 
-    // 1. Play Cracker Audio immediately on tap (starts with the rocket flight whistle/whoosh sound)
+    // 1. Play Cracker Audio immediately on tap
     if (audioRef.current) {
       audioRef.current.currentTime = 0;
       audioRef.current.play().catch(() => {});
     }
 
-    // 2. Travel smoothly and steadily across all pages from bottom to top
+    // 2. Travel smoothly and steadily across all pages from bottom to top (2.60s to sync with Peak 1)
     gsap.to(window, {
       scrollTo: { y: 0, autoKill: false },
-      duration: 2.62,
-      ease: "sine.inOut",
+      duration: 2.60,
+      ease: "power2.inOut",
     });
 
     // Clear any previous active timers
@@ -265,50 +256,68 @@ export default function RocketLauncher() {
     if (masterStopTimerRef.current) window.clearTimeout(masterStopTimerRef.current);
 
     // =========================================================================
-    // AUDIO-SYNCED EVENT 1: SOUND 1 (Audio Peak 1 at exactly 2.620s)
-    // Rocket reaches the apex at the top and CRACKERS BURST ON THE TWO SIDES
+    // AUDIO-SYNCED EVENT 1: SOUND 1 (Audio Peak 1 at exactly 2.60s)
+    // Rocket arrives at apex and BURSTS ON BOTH SIDES OF THE LAMP
     // =========================================================================
     sound1TimerRef.current = window.setTimeout(() => {
-      // Rocket reaches apex and vanishes into the explosions
       setIsRocketFlying(false);
 
-      // Cracker 1: Primary burst on the LEFT SIDE of the lamp (Enzolt Lime & White)
-      spawnCrackerBurst(leftX, leftY, CRACKER_1_COLORS, 140, "#A5D92E");
+      // Query current live position of Diya lamp now that scroll is at top
+      const liveDiya = document.querySelector("[data-i='diya']");
+      let liveLeftX = lampX - sideSpacing;
+      let liveRightX = lampX + sideSpacing;
+      let liveBurstY = lampY;
 
-      // Cracker 1: Accompanying burst on the RIGHT SIDE of the lamp
-      spawnCrackerBurst(rightX, rightY, CRACKER_1_COLORS, 75, "#B8F34A");
-    }, 2620);
+      if (liveDiya) {
+        const r = liveDiya.getBoundingClientRect();
+        const liveCenterX = r.left + r.width / 2;
+        liveLeftX = liveCenterX - sideSpacing;
+        liveRightX = liveCenterX + sideSpacing;
+        liveBurstY = r.top + r.height * 0.45;
+      }
+
+      // Cracker 1: Detonates on BOTH SIDES of the lamp (Enzolt Lime & Diamond White)
+      spawnCrackerBurst(liveLeftX, liveBurstY, CRACKER_1_COLORS, 140, "#A5D92E");
+      spawnCrackerBurst(liveRightX, liveBurstY, CRACKER_1_COLORS, 140, "#B8F34A");
+    }, 2600);
 
     // =========================================================================
-    // AUDIO-SYNCED EVENT 2: SOUND 2 (Audio Peak 2 at exactly 3.180s - 560ms later)
-    // Second major burst detonates across the TWO SIDES with festive gold & saffron
+    // AUDIO-SYNCED EVENT 2: SOUND 2 (Audio Peak 2 at exactly 3.15s - 550ms later)
+    // Second major burst detonates across BOTH SIDES with festive gold & saffron
     // =========================================================================
     sound2TimerRef.current = window.setTimeout(() => {
-      // Cracker 2: Major super-explosion on the RIGHT SIDE of the lamp (Festive Gold & Saffron)
-      spawnCrackerBurst(rightX, rightY - 5, CRACKER_2_COLORS, 150, "#FFC837");
+      const liveDiya = document.querySelector("[data-i='diya']");
+      let liveLeftX = lampX - sideSpacing;
+      let liveRightX = lampX + sideSpacing;
+      let liveBurstY = lampY;
 
-      // Cracker 2: Accompanying crackle burst on the LEFT SIDE of the lamp
-      spawnCrackerBurst(leftX, leftY - 5, CRACKER_2_COLORS, 75, "#FF8008");
-    }, 3180);
+      if (liveDiya) {
+        const r = liveDiya.getBoundingClientRect();
+        const liveCenterX = r.left + r.width / 2;
+        liveLeftX = liveCenterX - sideSpacing;
+        liveRightX = liveCenterX + sideSpacing;
+        liveBurstY = r.top + r.height * 0.45;
+      }
+
+      // Cracker 2: Massive festive burst on BOTH SIDES of the lamp
+      spawnCrackerBurst(liveLeftX, liveBurstY - 8, CRACKER_2_COLORS, 150, "#FF8008");
+      spawnCrackerBurst(liveRightX, liveBurstY - 8, CRACKER_2_COLORS, 150, "#FFC837");
+    }, 3150);
 
     // =========================================================================
     // MASTER 5.0-SECOND STOP TIMER
     // Stops audio, cleans up canvas, and resets button state
     // =========================================================================
     masterStopTimerRef.current = window.setTimeout(() => {
-      // Stop and reset audio
       if (audioRef.current) {
         audioRef.current.pause();
         audioRef.current.currentTime = 0;
       }
 
-      // Finish cracker sparkling and reset state
       setShowCanvas(false);
       setIsLaunching(false);
       setIsRocketFlying(false);
-      setLaunchOrigin(null);
 
-      // Clean canvas
       if (canvasRef.current) {
         const ctx = canvasRef.current.getContext("2d");
         if (ctx) {
@@ -317,6 +326,29 @@ export default function RocketLauncher() {
       }
     }, 5000);
   };
+
+  // GSAP animation for flying rocket in perfect sync with window scroll
+  useEffect(() => {
+    if (isRocketFlying && flyingRocketRef.current) {
+      const startY = window.innerHeight - 70;
+      gsap.fromTo(
+        flyingRocketRef.current,
+        {
+          x: targetPos.x - 16,
+          y: startY,
+          scale: 0.9,
+          opacity: 1,
+        },
+        {
+          x: targetPos.x - 16,
+          y: targetPos.y,
+          scale: 1.25,
+          duration: 2.60,
+          ease: "power2.inOut",
+        }
+      );
+    }
+  }, [isRocketFlying, targetPos]);
 
   // High-performance 60FPS Lag-Free Dual Cracker Canvas Simulation
   useEffect(() => {
@@ -344,12 +376,34 @@ export default function RocketLauncher() {
       const sparks = sparksRef.current;
       const shockwaves = shockwavesRef.current;
 
+      // While rocket is ascending, spawn sparkling golden exhaust trail from its nozzle
+      if (isRocketFlying && flyingRocketRef.current) {
+        const r = flyingRocketRef.current.getBoundingClientRect();
+        if (r.top > 0 && r.top < window.innerHeight) {
+          const exX = r.left + r.width / 2 + (Math.random() - 0.5) * 6;
+          const exY = r.bottom - 4;
+          for (let k = 0; k < 3; k++) {
+            sparks.push({
+              x: exX,
+              y: exY,
+              vx: (Math.random() - 0.5) * 2.2,
+              vy: 1.8 + Math.random() * 3.8,
+              alpha: 0.95,
+              decay: 0.035 + Math.random() * 0.02,
+              color: Math.random() > 0.4 ? "#B8F34A" : "#FFC837",
+              size: 1.4 + Math.random() * 1.5,
+              seed: Math.random() * 50,
+            });
+          }
+        }
+      }
+
       // Smooth motion streak fade (NO expensive blur filters)
       ctx.globalCompositeOperation = "destination-out";
       ctx.fillStyle = "rgba(0, 0, 0, 0.18)";
       ctx.fillRect(0, 0, window.innerWidth, window.innerHeight);
 
-      // Additive blending: creates intense sparkling light where sparks overlap with 0% CPU blur lag!
+      // Additive blending: creates intense sparkling light where sparks overlap
       ctx.globalCompositeOperation = "lighter";
 
       // 1. Draw Shockwave Expanding Rings
@@ -526,67 +580,54 @@ export default function RocketLauncher() {
       {typeof document !== "undefined" &&
         createPortal(
           <>
-            <AnimatePresence>
-              {isLaunching && launchOrigin && isRocketFlying && (
-                <motion.div
-                  key="flying-rocket"
-                  initial={{
-                    x: launchOrigin.x - 16,
-                    y: launchOrigin.y,
-                    scale: 1,
-                    opacity: 1,
-                  }}
-                  animate={{
-                    x: targetPos.x - 16,
-                    y: targetPos.y,
-                    scale: [1, 1.1, 1.2],
-                  }}
-                  transition={{
-                    duration: 2.62,
-                    ease: "linear",
-                  }}
-                  className="pointer-events-none fixed z-[99999] flex flex-col items-center will-change-transform"
-                  style={{ left: 0, top: 0 }}
-                >
-                  {/* Rocket Vessel */}
-                  <div className="relative">
-                    <RocketIcon size={32} />
+            {isRocketFlying && (
+              <div
+                ref={flyingRocketRef}
+                className="pointer-events-none fixed z-[99999] flex flex-col items-center will-change-transform"
+                style={{
+                  left: 0,
+                  top: 0,
+                  transform: `translate3d(${targetPos.x - 16}px, ${window.innerHeight - 70}px, 0)`,
+                }}
+              >
+                {/* Rocket Vessel */}
+                <div className="relative">
+                  <RocketIcon size={32} />
+                </div>
+
+                {/* Rocket Fire Jet & Exhaust Flames */}
+                <div className="relative -mt-1 flex flex-col items-center">
+                  {/* Core White Hot Flame */}
+                  <div
+                    className="h-10 w-3 rounded-full animate-pulse"
+                    style={{
+                      background:
+                        "linear-gradient(180deg, #FFFFFF 0%, #B8F34A 35%, #A5D92E 70%, rgba(213,168,75,0.2) 100%)",
+                      boxShadow:
+                        "0 0 20px 5px rgba(184,243,74,0.95), 0 0 45px 12px rgba(165,217,46,0.7)",
+                      filter: "blur(0.5px)",
+                    }}
+                  />
+
+                  {/* Outer Golden Flame Flicker */}
+                  <div
+                    className="absolute -top-1 h-14 w-5 rounded-full opacity-80 animate-ping"
+                    style={{
+                      background:
+                        "radial-gradient(ellipse at 50% 20%, #A5D92E 0%, #D5A84B 60%, transparent 100%)",
+                      filter: "blur(2px)",
+                    }}
+                  />
+
+                  {/* Golden Spark Trail */}
+                  <div className="pointer-events-none mt-1 flex flex-col items-center gap-1.5 opacity-80">
+                    <span className="h-3 w-3 rounded-full bg-[#B8F34A] blur-[1px] animate-ping" />
+                    <span className="h-4 w-4 rounded-full bg-[#D5A84B] blur-[2px]" />
+                    <span className="h-5 w-5 rounded-full bg-[#FF8008] blur-[3px]" />
                   </div>
-
-                  {/* Rocket Fire Jet & Exhaust Flames */}
-                  <div className="relative -mt-1 flex flex-col items-center">
-                    {/* Core White Hot Flame */}
-                    <div
-                      className="h-9 w-2.5 rounded-full animate-pulse"
-                      style={{
-                        background:
-                          "linear-gradient(180deg, #FFFFFF 0%, #B8F34A 35%, #A5D92E 70%, rgba(213,168,75,0.2) 100%)",
-                        boxShadow:
-                          "0 0 18px 4px rgba(184,243,74,0.95), 0 0 40px 10px rgba(165,217,46,0.7)",
-                        filter: "blur(0.6px)",
-                      }}
-                    />
-
-                    {/* Outer Golden Flame Flicker */}
-                    <div
-                      className="absolute -top-1 h-12 w-4 rounded-full opacity-80 animate-ping"
-                      style={{
-                        background:
-                          "radial-gradient(ellipse at 50% 20%, #A5D92E 0%, #D5A84B 60%, transparent 100%)",
-                        filter: "blur(2px)",
-                      }}
-                    />
-
-                    {/* Smoke Trail Puffs */}
-                    <div className="pointer-events-none mt-1 flex flex-col items-center gap-1.5 opacity-60">
-                      <span className="h-3 w-3 rounded-full bg-mist/30 blur-[2px] animate-ping" />
-                      <span className="h-4 w-4 rounded-full bg-mist/20 blur-[3px]" />
-                      <span className="h-5 w-5 rounded-full bg-mist/10 blur-[4px]" />
-                    </div>
-                  </div>
-                </motion.div>
-              )}
-            </AnimatePresence>
+                </div>
+              </div>
+            )}
 
             {/* Canvas Fireworks Dual Particle Explosion in Home Page Sky */}
             {showCanvas && (
